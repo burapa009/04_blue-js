@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./style.css"/>
+    <title>JavaScript-E-commerce-04_blue</title>
+  </head>
+  <style>
+    .my-class{
+  color: teal; 
+  display: flex;
+  justify-content: center;
+  margin: 50px;
+  font-size: 50px;
+}
+
+.my-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: c;
+  margin-right: 10px;
+  margin: 50px;
+}
+
+.create-product {
+  width: 150px;
+  border-radius: 10px;
+  border: 2px solid #4caf50;
+}
+
+.create-product:hover {
+  color: aqua;
+  background-color: rgb(240, 94, 26);
+  border-color: white;
+  transform: scale(1.5);
+ 
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: auto;
+  margin: auto 50px;
+  
+}
+
+button {
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+.total-price {
+  margin-top: 20px;
+  font-weight: bold;
+}
+
+.history {
+  margin-top: 50px;
+}
+
+.total-price {
+  color: red;
+}
+
+
+.Remove{
+  border: solid rgb(224, 96, 64) 2px;
+  background-color: rgb(230, 144, 17);
+  
+}
+
+.Remove:hover{
+  background-color: aliceblue;
+  transform: scale(1.5);
+}
+
+.RemoveSelected{
+  border: solid seagreen 2px;
+  background-color: rgb(202, 217, 219);
+  
+}
+
+.RemoveSelected:hover{
+  background-color: rgb(163, 226, 16);
+  color: rgb(226, 43, 83);
+  transform: scale(1.5);
+  
+}
+  </style>
+  <body>
+    <nav>
+      <div class="my-class"><h1>Shopping Cart</h1> </div>
+    </nav>
+
+    <div class="my-item">
+      <h3>Add Item for selection</h3>
+      <div>
+        Product Name:
+        <input id="input-txt" placeholder="กรอกข้อมูลสินค้า" />
+      </div>
+      <div>
+        Price:
+        <input id="input-price" type="number" placeholder="กรอกราคา" />
+      </div>
+      <div>
+        Image:
+        <input id="input-img" type="text" placeholder="กรอกลิงค์รูปภาพ" />
+      </div>
+      <button class="create-product" onclick="addItem()">Create Product</button>
+    </div>
+
+    <div class="container">
+      <div class="list">
+        <h3>Current Product</h3>
+        <div id="app"></div>
+        <button class="RemoveSelected" onclick="removeSelectedItems()">Remove Selected</button>
+        <div class="total-price" id="total-price">Total: 0.00 บาท</div>
+     </div>
+
+     <div class="history">
+        <h3>ประวัติการลบสินค้า</h3>
+        <div id="history"></div>
+     </div>
+    </div>
+
+
+    <div id="app"></div>
+    <script src="main.js" defer> </script>
+  </body>
+  <script>
+    
+let itemArr = []; // เก็บรายการสินค้า
+let deletedItems = []; // เก็บสินค้าที่ถูกลบ
+let selectedItems = new Set(); // ใช้ Set เก็บ ID ของสินค้าที่ถูกเลือก
+
+// ฟังก์ชันสำหรับแสดงรายการสินค้าและประวัติการลบ
+function render() {
+  let appHtmlText = '';
+  itemArr.forEach((item) => {
+    appHtmlText += `
+      <div class="item" id="${item.id}">
+        <input type="checkbox" onchange="toggleSelect(${item.id})" />
+        <div>${item.text} - ${item.price.toFixed(2)} บาท</div>
+        ${item.img ? `<img src="${item.img}" alt="Item Image" />` : ''}
+        <button class="Remove" onclick="removeItem(${item.id})">Remove</button>
+      </div>`;
+  });
+  document.getElementById("app").innerHTML = appHtmlText;
+
+  let historyHtmlText = '';
+  deletedItems.forEach((item) => {
+    historyHtmlText += `
+      <div class="item">
+        <div>${item.text} - ${item.price.toFixed(2)} บาท</div>
+        ${item.img ? `<img src="${item.img}" alt="Deleted Image" />` : ''}
+      </div>`;
+  });
+  document.getElementById("history").innerHTML = historyHtmlText;
+
+  updateTotalPrice();
+}
+
+// ฟังก์ชันเพิ่มสินค้าใหม่
+function addItem() {
+  const inputText = document.getElementById("input-txt").value;
+  const inputPrice = parseFloat(document.getElementById("input-price").value);
+  const inputImg = document.getElementById("input-img").value;
+
+  if (inputText.trim() === "") return alert("โปรดเพิ่มรายการสินค้า");
+  if (isNaN(inputPrice) || inputPrice < 0) return alert("โปรดใส่ราคาสินค้าที่ถูกต้อง");
+
+  const id = Date.now();
+  itemArr.push({ id, text: inputText, price: inputPrice, img: inputImg.trim() || null });
+
+  // ล้างค่าช่องอินพุตหลังจากเพิ่มสินค้า
+  document.getElementById("input-txt").value = "";
+  document.getElementById("input-price").value = "";
+  document.getElementById("input-img").value = "";
+
+  render();
+}
+
+// ฟังก์ชันลบสินค้า
+function removeItem(id) {
+  const itemToRemove = itemArr.find((item) => item.id === id);
+  if (itemToRemove) {
+    deletedItems.push(itemToRemove);
+    itemArr = itemArr.filter((item) => item.id !== id);
+    render();
+  }
+}
+
+// ฟังก์ชันเลือกหรือยกเลิกการเลือกสินค้า
+function toggleSelect(id) {
+  if (selectedItems.has(id)) {
+    selectedItems.delete(id); // ยกเลิกการเลือก
+  } else {
+    selectedItems.add(id); // เลือกสินค้า
+  }
+}
+
+// ฟังก์ชันลบสินค้าที่ถูกเลือก
+function removeSelectedItems() {
+  itemArr = itemArr.filter((item) => {
+    if (selectedItems.has(item.id)) {
+      deletedItems.push(item);
+      return false; // ลบออกจากรายการ
+    }
+    return true;
+  });
+  selectedItems.clear(); // ล้างการเลือก
+  render();
+}
+
+// ฟังก์ชันอัปเดตราคารวมของสินค้า
+function updateTotalPrice() {
+  const total = itemArr.reduce((sum, item) => sum + item.price, 0);
+  document.getElementById("total-price").textContent = `Total: $${total.toFixed(2)}`;
+}
+
+  </script>
+</html>
